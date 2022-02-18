@@ -356,6 +356,10 @@ $CheckPath = 'C:\Users\shuriken\AppData\LocalLow\DeoVR'
 if((Test-Path -LiteralPath $CheckPath) -ne $true) {  New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black -NoNewline } 
 else {Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline;Write-Host " already exists." -ForegroundColor White -BackgroundColor Black -NoNewline }
 
+#Install winget
+Start-Process "https://www.microsoft.com/en-us/p/app-installer/9nblggh4nns1"
+#[void][System.Console]::ReadKey($true)
+
 #Install Software
  $confirmation = $(Write-Host "Do you want to install additional software packages?" -ForegroundColor White -BackgroundColor Black -NoNewLine) + $(Write-Host " (y/n): " -ForegroundColor Cyan -BackgroundColor Black -NoNewLine; Read-Host)
 if ($confirmation -eq 'y') {
