@@ -136,6 +136,13 @@ if ((Get-ItemProperty $registryPath -name $Name | select -exp $Name) -eq $value 
     else {Write-Host $registryPath\$Name -ForegroundColor Magenta -BackgroundColor Black -NoNewline; Write-Host "was not set to value " -ForegroundColor White -BackgroundColor Black -NoNewline ;Write-Host $value -ForegroundColor Cyan -BackgroundColor Black}
  }
 
+#Disable Windows 10 fast boot
+$registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
+$Name = "HiberbootEnabled"
+$value = "0"
+create_registry_key
+verify_registry_key
+
 #Remove Windows desktop background image
 $registryPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
 $Name = "BackgroundType"
