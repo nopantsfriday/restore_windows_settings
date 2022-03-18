@@ -1,17 +1,17 @@
 #Disable Hibernate
 powercfg.exe -h off
 
-# Disable automatic pagefile management
-$cs = gwmi Win32_ComputerSystem
-if ($cs.AutomaticManagedPagefile) {
-    $cs.AutomaticManagedPagefile = $False
-    $cs.Put()
-}
-# Disable a *single* pagefile if any
-$pg = gwmi win32_pagefilesetting
-if ($pg) {
-    $pg.Delete()
-}
+# # Disable automatic pagefile management
+# $cs = gwmi Win32_ComputerSystem
+# if ($cs.AutomaticManagedPagefile) {
+#   $cs.AutomaticManagedPagefile = $False
+#   $cs.Put()
+# }
+# # Disable a *single* pagefile if any
+# $pg = gwmi win32_pagefilesetting
+# if ($pg) {
+#   $pg.Delete()
+# }
 
 # Uninstall OneDrive
 Get-Process -Name "OneDrive" -ErrorAction SilentlyContinue | Stop-Process
@@ -23,47 +23,46 @@ C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
 #Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName Containers
 #Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package
 
-<# Remove Windows AppxPackages
-Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
-#>
+# Remove Windows AppxPackages
+# Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
 
 $crap_app_clues = "3dbuilder",
-  "3dviewer",
-  "bingfinance",
-  "bingnews",
-  "bingsports",
-  "bingweather",
-  "CandyCrushFriends",
-  "cortana",
-  "dtsheadphonex",
-  "FarmHeroesSaga",
-  "getHelp",
-  "getstarted",
-  "messaging",
-  "microsoft.people",
-  "officehub",
-  "oneconnect",
-  "onenote",
-  "Paint",
-  "photos",
-  "print3d",
-  "MicrosoftTeams",
-  "Spotify",
-  "skypeapp",
-  "solitairecollection",
-  "soundrecorder",
-  "officehub",
-  "windowsalarms",
-  "windowscalculator",
-  "windowscamera",
-  "windowscommunicationapps",
-  "WindowsFeedbackHub",
-  "windowsmaps",
-  "windowsphone",
-  "yourphone",
-  "XING",
-  "zunemusic",
-  "zunevideo"
+"3dviewer",
+"bingfinance",
+"bingnews",
+"bingsports",
+"bingweather",
+"CandyCrushFriends",
+"cortana",
+"dtsheadphonex",
+"FarmHeroesSaga",
+"getHelp",
+"getstarted",
+"messaging",
+"microsoft.people",
+"officehub",
+"oneconnect",
+"onenote",
+"Paint",
+"photos",
+"print3d",
+"MicrosoftTeams",
+"Spotify",
+"skypeapp",
+"solitairecollection",
+"soundrecorder",
+"officehub",
+"windowsalarms",
+"windowscalculator",
+"windowscamera",
+"windowscommunicationapps",
+"WindowsFeedbackHub",
+"windowsmaps",
+"windowsphone",
+"yourphone",
+"XING",
+"zunemusic",
+"zunevideo"
 
 Function RemoveApp($crap_app) {
   $name = $crap_app.Name
@@ -77,16 +76,16 @@ Function GetApp($clue) {
 
 
 Function RemoveAllApps {
-  foreach($crap_clue in $crap_app_clues) {
+  foreach ($crap_clue in $crap_app_clues) {
     $crap_app = GetApp($crap_clue)
     if ($crap_app -ne $null) {
-        RemoveApp($crap_app)
-      }
-      else {
+      RemoveApp($crap_app)
+    }
+    else {
       Write-Host "Couldn't find '$crap_clue'" -ForegroundColor Yellow
     }
-    } 
-  }
+  } 
+}
 
 RemoveAllApps
 
@@ -95,26 +94,32 @@ Disable unnecessary services
 #>
 
 $ServiceName = @(
-#Biometric Services
-"WbioSrvc",
-#Windows Search (sucks anyway)
-"WSearch",
-#Windows Insider Service
-"wisvc",
-#Windows Error Reporting
-"WerSvc"
-#RemoteRegistry
-"RemoteRegistry",
-#Touch Keyboard and Handwriting Panel Service
-"TabletInputService",
-#Windows Fax
-"Fax",
-#Connected User Experiences and Telemetry
-"DiagTrack",
-#Downloaded Maps Manager
-"MapsBroker"
+  #Windows Retail Demo
+  "RetailDemo",
+  # Windows Mobile Hotspot
+  "icssvc",
+  #PhoneService
+  "PhoneSvc",
+  #Biometric Services
+  "WbioSrvc",
+  #Windows Search (sucks anyway)
+  "WSearch",
+  #Windows Insider Service
+  "wisvc",
+  #Windows Error Reporting
+  "WerSvc"
+  #RemoteRegistry
+  "RemoteRegistry",
+  #Touch Keyboard and Handwriting Panel Service
+  "TabletInputService",
+  #Windows Fax
+  "Fax",
+  #Connected User Experiences and Telemetry
+  "DiagTrack",
+  #Downloaded Maps Manager
+  "MapsBroker"
 )
-foreach($Service in $ServiceName ) {Set-Service $Service -StartupType Disable; Stop-Service $Service}
+foreach ($Service in $ServiceName ) { Set-Service $Service -StartupType Disable; Stop-Service $Service }
 
 <#
 Configure preferable Windows settings
@@ -122,19 +127,21 @@ Configure preferable Windows settings
 
 function create_registry_key {
 
-IF(!(Test-Path $registryPath))
-  {
+  if (!(Test-Path $registryPath)) {
     New-Item -Path $registryPath -Force | Out-Null
-    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType DWORD -Value $value | Out-Null}
- ELSE {
-    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType DWORD -Value $value | Out-Null | Out-Null}
+    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType DWORD -Value $value | Out-Null
+  }
+  else {
+    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType DWORD -Value $value | Out-Null | Out-Null
+  }
 }
 
 function verify_registry_key {
-if ((Get-ItemProperty $registryPath -name $Name | select -exp $Name) -eq $value ) {
-    Write-Host $registryPath\ -ForegroundColor Green -BackgroundColor Black -NoNewline; Write-Host $Name -ForegroundColor Cyan -BackgroundColor Black -NoNewline; Write-Host " was set to value " -ForegroundColor White -BackgroundColor Black -NoNewline; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black  }
-    else {Write-Host $registryPath\$Name -ForegroundColor Magenta -BackgroundColor Black -NoNewline; Write-Host "was not set to value " -ForegroundColor White -BackgroundColor Black -NoNewline ;Write-Host $value -ForegroundColor Cyan -BackgroundColor Black}
- }
+  if ((Get-ItemProperty $registryPath -name $Name | select -exp $Name) -eq $value ) {
+    Write-Host $registryPath\ -ForegroundColor Green -BackgroundColor Black -NoNewline; Write-Host $Name -ForegroundColor Cyan -BackgroundColor Black -NoNewline; Write-Host " was set to value " -ForegroundColor White -BackgroundColor Black -NoNewline; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black  
+  }
+  else { Write-Host $registryPath\$Name -ForegroundColor Magenta -BackgroundColor Black -NoNewline; Write-Host "was not set to value " -ForegroundColor White -BackgroundColor Black -NoNewline ; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black }
+}
 
 #Disable Windows 10 fast boot
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
@@ -327,8 +334,8 @@ Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags" -Re
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\BagMRU" -Recurse -force -ErrorAction SilentlyContinue;
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\Shell\Bags" -Recurse -force -ErrorAction SilentlyContinue;
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\Shell\BagMRU" -Recurse -force -ErrorAction SilentlyContinue;
-if((Test-Path -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags\AllFolders\Shell") -ne $true) {  New-Item "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags\AllFolders\Shell" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell") -ne $true) {  New-Item "HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags\AllFolders\Shell") -ne $true) { New-Item "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags\AllFolders\Shell" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell") -ne $true) { New-Item "HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" -force -ea SilentlyContinue | Out-Null };
 New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags\AllFolders\Shell' -Name 'WFlags' -Value 0 -PropertyType DWord -Force -ea SilentlyContinue | Out-Null;
 New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags\AllFolders\Shell' -Name 'Status' -Value 0 -PropertyType DWord -Force -ea SilentlyContinue | Out-Null;
 New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags\AllFolders\Shell' -Name 'Mode' -Value 4 -PropertyType DWord -Force -ea SilentlyContinue | Out-Null;
@@ -339,14 +346,14 @@ New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFo
 New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell' -Name 'vid' -Value '{137E7700-3573-11CF-AE69-08002B2E1262}' -PropertyType String -Force -ea SilentlyContinue | Out-Null;
 
 #Enable old Windows Photoviewer
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\command") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\command" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\DropTarget") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\DropTarget" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\command") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\command" -force -ea SilentlyContinue | Out-Null };
-if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\DropTarget") -ne $true) {  New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\DropTarget" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\command") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\command" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\DropTarget") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\DropTarget" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\command") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\command" -force -ea SilentlyContinue | Out-Null };
+if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\DropTarget") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\DropTarget" -force -ea SilentlyContinue | Out-Null };
 New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open' -Name 'MuiVerb' -Value '@photoviewer.dll,-3043' -PropertyType String -Force -ea SilentlyContinue | Out-Null;
 New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\command' -Name '(default)' -Value '%SystemRoot%\System32\rundll32.exe "%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll", ImageView_Fullscreen %1' -PropertyType ExpandString -Force -ea SilentlyContinue | Out-Null;
 New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open\DropTarget' -Name 'Clsid' -Value '{FFE2A43C-56B9-4bf5-9A79-CC6D4285608A}' -PropertyType String -Force -ea SilentlyContinue | Out-Null;
@@ -356,37 +363,51 @@ New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.d
 
 
 #Disable unnecessary log files and writes to SSD
-$CheckPath = 'C:\Users\shuriken\AppData\LocalLow\Deo VR'
-if((Test-Path -LiteralPath $CheckPath) -ne $true) {  New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black -NoNewline } 
-else {Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline;Write-Host " already exists." -ForegroundColor White -BackgroundColor Black -NoNewline }
-$CheckPath = 'C:\Users\shuriken\AppData\LocalLow\DeoVR'
-if((Test-Path -LiteralPath $CheckPath) -ne $true) {  New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black -NoNewline } 
-else {Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline;Write-Host " already exists." -ForegroundColor White -BackgroundColor Black -NoNewline }
+function create_dummyfolder_file {
+  if ((Test-Path -LiteralPath $CheckPath) -ne $true) { New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black -NoNewline } 
+  else { Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline; Write-Host " already exists." -ForegroundColor White -BackgroundColor Black -NoNewline }
+}
+
+$CheckPath = '~\AppData\LocalLow\Deo VR'
+create_dummyfolder_file
+
+$CheckPath = '~\AppData\LocalLow\DeoVR'
+create_dummyfolder_file
 
 #Install winget
-Start-Process "https://www.microsoft.com/en-us/p/app-installer/9nblggh4nns1"
-#[void][System.Console]::ReadKey($true)
+# Source file location
+$urisource = 'https://aka.ms/getwinget'
+# Destination to save the file
+$uridestination = '~/Downloads/winget.msixbundle'
+#Download the file
+Invoke-WebRequest -Uri $urisource -OutFile $uridestination
+#Import-Module Appx
+#Start-Process "~/Downloads/winget.msixbundle"
+Import-Module Appx -usewindowspowershell
+Add-AppPackage -path '~/Downloads/winget.msixbundle'
 
 #Install Software
- $confirmation = $(Write-Host "Do you want to install additional software packages?" -ForegroundColor White -BackgroundColor Black -NoNewLine) + $(Write-Host " (y/n): " -ForegroundColor Cyan -BackgroundColor Black -NoNewLine; Read-Host)
+$confirmation = $(Write-Host "Do you want to install additional software packages?" -ForegroundColor White -BackgroundColor Black -NoNewLine) + $(Write-Host " (y/n): " -ForegroundColor Cyan -BackgroundColor Black -NoNewLine; Read-Host)
 if ($confirmation -eq 'y') {
-#winget.exe install Nvidia.GeForceExperience
-winget.exe install Notepad++
-winget.exe install Signal
-winget.exe install Firefox
-winget.exe install Google.Chrome
-winget.exe install 7-Zip
-#winget.exe install Everything
-#winget.exe install git
-winget.exe install Logitech.LGH
-winget.exe install Mumble
-winget.exe install OBSProject.OBSStudio
-winget.exe install protonvpn
-winget.exe install Teamspeak
-#winget.exe install Intel.IntelDriverAndSupportAssistant
-winget.exe install VideoLAN.VLC
-winget.exe install Twilio.Authy
-#winget.exe install CPUID.CPU-Z
-winget.exe install Discord.Discord
-#winget.exe install Microsoft.PowerToys
+  winget.exe install -e --id Nvidia.GeForceExperience
+  winget.exe install -e --id Microsoft.VisualStudioCode
+  winget.exe install -e --id Microsoft.PowerShell
+  winget.exe install -e --id OpenWhisperSystems.Signal
+  winget.exe install -e --id Mozilla.Firefox
+  winget.exe install -e --id Google.Chrome
+  winget.exe install -e --id Microsoft.Edge
+  winget.exe install -e --id 7zip.7zip
+  winget.exe install -e --id Git.Git
+  winget.exe install -e --id Logitech.GHUB
+  winget.exe install -e --id Mumble.Mumble
+  winget.exe install -e --id OBSProject.OBSStudio
+  winget.exe install -e --id ProtonTechnologies.ProtonVPN
+  winget.exe install -e --id Intel.IntelDriverAndSupportAssistant
+  winget.exe install -e --id VideoLAN.VLC
+  winget.exe install -e --id Twilio.Authy
+  winget.exe install -e --id Discord.Discord
+  winget.exe install -e --id Microsoft.PowerToys
+  winget.exe install -e --id Nevcairiel.LAVFilters
+  winget.exe install -e --id AntoineAflalo.SoundSwitch
+  winget.exe install -e --id Spotify.Spotify
 }
