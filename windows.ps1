@@ -427,6 +427,14 @@ $registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
+#Disable websites getting access to language list
+$registryPath = "HKCU:\Control Panel\International\User Profile"
+$Name = "HttpAcceptLanguageOptOut"
+$value = "1"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
 #Enable GPU hardware scheduling
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
 $Name = "HwSchMode"
@@ -439,6 +447,14 @@ verify_registry_key
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
 $Name = "DirectXUserGlobalSettings"
 $value = "VRROptimizeEnable=1;"
+$registry_type = "String"
+create_registry_key
+verify_registry_key
+
+#Show accent color on title bars and windows
+$registryPath = "HKCU:\Software\Microsoft\Windows\DWM"
+$Name = "ColorPrevalence"
+$value = "0"
 $registry_type = "String"
 create_registry_key
 verify_registry_key
