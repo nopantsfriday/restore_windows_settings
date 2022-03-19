@@ -168,10 +168,10 @@ function create_registry_key {
 
   if (!(Test-Path $registryPath)) {
     New-Item -Path $registryPath -Force | Out-Null
-    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType DWORD -Value $value | Out-Null
+    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType $registry_type -Value $value | Out-Null
   }
   else {
-    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType DWORD -Value $value | Out-Null | Out-Null
+    New-ItemProperty -Name $name -Path $registrypath -Force -PropertyType $registry_type -Value $value | Out-Null | Out-Null
   }
 }
 
@@ -186,6 +186,7 @@ function verify_registry_key {
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
 $Name = "HiberbootEnabled"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -193,12 +194,14 @@ verify_registry_key
 $registryPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
 $Name = "BackgroundType"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
 $registryPath = "HKCU:\Control Panel\Desktop"
 $Name = "WallPaper"
 $value = ""
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -206,6 +209,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\Shell\Bags\1\Desktop"
 $Name = "IconSize"
 $value = "36"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -213,6 +217,7 @@ verify_registry_key
 $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\PasswordLess\Device"
 $Name = "DevicePasswordLessBuildVersion"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -220,6 +225,7 @@ verify_registry_key
 $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"
 $Name = "Nolockscreen"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -227,6 +233,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Policies\Microsoft\Windows\CloudContent"
 $Name = "DisableWindowsSpotlightFeatures"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -234,6 +241,7 @@ verify_registry_key
 $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR"
 $Name = "GameDVR_Enabled"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -241,6 +249,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Multimedia\Audio"
 $Name = "UserDuckingPreference"
 $value = "3"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -248,6 +257,7 @@ verify_registry_key
 $registryPath = "HKLM:\SOFTWARE\Microsoft\WindowsSelfHost\UI\Visibility"
 $Name = "DiagnosticErrorText"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -255,6 +265,7 @@ verify_registry_key
 $registryPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "LaunchTo"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -262,12 +273,14 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
 $Name = "BingSearchEnabled"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
 $Name = "CortanaConsent"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -275,6 +288,7 @@ verify_registry_key
 $registryPath = "HKLM:\Software\Policies\Microsoft\Windows\System"
 $Name = "DisableLogonBackgroundImage"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -282,6 +296,7 @@ verify_registry_key
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\7516b95f-f776-4464-8c53-06167f40cc99\8EC4B3A5-6868-48c2-BE75-4F3044BE88A7"
 $Name = "Attributes"
 $value = "2"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -289,18 +304,21 @@ verify_registry_key
 $registryPath = "HKCU:\Control Panel\Mouse"
 $Name = "MouseSpeed"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
 $registryPath = "HKCU:\Control Panel\Mouse"
 $Name = "MouseThreshold1"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
 $registryPath = "HKCU:\Control Panel\Mouse"
 $Name = "MouseThreshold2"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -308,6 +326,7 @@ verify_registry_key
 $registryPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 $Name = "AppsUseLightTheme"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -316,6 +335,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer"
 $Name = "EnableAutoTray"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -323,6 +343,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "Hidden"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -330,6 +351,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "HideFileExt"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -337,6 +359,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "ShowSuperHidden"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -344,6 +367,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "ShowCortanaButton"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -351,6 +375,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "ShowTaskViewButton"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -358,6 +383,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "TaskbarSmallIcons"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -365,6 +391,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications"
 $Name = "GlobalUserDisabled"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -372,6 +399,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
 $Name = "InprocServer32"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -379,6 +407,7 @@ verify_registry_key
 $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
 $Name = "verbosestatus"
 $value = "1"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -386,6 +415,7 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\"
 $Name = "TaskbarAl"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
@@ -393,6 +423,23 @@ verify_registry_key
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
 $Name = "Enabled"
 $value = "0"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
+#Enable GPU hardware scheduling
+$registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
+$Name = "HwSchMode"
+$value = "2"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
+#Enable GPU variable refresh rate
+$registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
+$Name = "DirectXUserGlobalSettings"
+$value = "VRROptimizeEnable=1;"
+$registry_type = "String"
 create_registry_key
 verify_registry_key
 
@@ -498,12 +545,14 @@ if ($confirmation -eq 'y') {
 $registryPath = "HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
 $Name = "System.IsPinnedToNameSpaceTree"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
 $registryPath = "HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
 $Name = "System.IsPinnedToNameSpaceTree"
 $value = "0"
+$registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 #>
