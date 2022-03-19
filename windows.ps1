@@ -1,31 +1,69 @@
-#Disable Hibernate
+<#
+Disable Hibernate
+#>
 powercfg.exe -h off
 
-# # Disable automatic pagefile management
-# $cs = gwmi Win32_ComputerSystem
-# if ($cs.AutomaticManagedPagefile) {
-#   $cs.AutomaticManagedPagefile = $False
-#   $cs.Put()
-# }
-# # Disable a *single* pagefile if any
-# $pg = gwmi win32_pagefilesetting
-# if ($pg) {
-#   $pg.Delete()
-# }
+<#
+Enable Ultimate Performance Power Plan
+#>
+powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
 
-# Uninstall OneDrive
+<#
+Uninstall OneDrive
+#>
 Get-Process -Name "OneDrive" -ErrorAction SilentlyContinue | Stop-Process
 C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
 
-#Uninstall uselsee Windows optional features
-#Disable-WindowsOptionalFeature -Online -NoRestart -FeatureName WindowsMediaPlayer
-#Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName Internet-Explorer-Optional-amd64
-#Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName Containers
-#Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package
+<#
+Uninstall Microsoft Teams
+Source: https://lazyadmin.nl/powershell/microsoft-teams-uninstall-reinstall-and-cleanup-guide-scripts/
+#>
+Write-Host "Removing Teams Machine-wide Installer" -ForegroundColor Yellow
+$MachineWide = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
+$MachineWide.Uninstall()
+function unInstallTeams($path) {
 
-# Remove Windows AppxPackages
-# Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
+  $clientInstaller = "$($path)\Update.exe"
 
+  try {
+    $process = Start-Process -FilePath "$clientInstaller" -ArgumentList "--uninstall /s" -PassThru -Wait -ErrorAction STOP
+
+    if ($process.ExitCode -ne 0) {
+      Write-Error "UnInstallation failed with exit code  $($process.ExitCode)."
+    }
+  }
+  catch {
+    Write-Error $_.Exception.Message
+  }
+
+}
+#Locate installation folder
+$localAppData = "$($env:LOCALAPPDATA)\Microsoft\Teams"
+$programData = "$($env:ProgramData)\$($env:USERNAME)\Microsoft\Teams"
+
+
+If (Test-Path "$($localAppData)\Current\Teams.exe") {
+  unInstallTeams($localAppData)
+
+}
+elseif (Test-Path "$($programData)\Current\Teams.exe") {
+  unInstallTeams($programData)
+}
+else {
+  Write-Warning  "Teams installation not found"
+}
+
+<#
+Uninstall uselsee Windows optional features
+#>
+Disable-WindowsOptionalFeature -Online -NoRestart -FeatureName WindowsMediaPlayer
+Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName Internet-Explorer-Optional-amd64
+Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package
+
+<#
+Remove Windows AppxPackages
+Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
+#>
 $crap_app_clues = "3dbuilder",
 "3dviewer",
 "bingfinance",
@@ -69,12 +107,9 @@ Function RemoveApp($crap_app) {
   Write-Host "Deleting $name" -ForegroundColor Green
   Remove-AppxPackage -Package $crap_app -AllUsers
 }
-
 Function GetApp($clue) {
   Get-AppxPackage -AllUsers -Name *$clue*
 }
-
-
 Function RemoveAllApps {
   foreach ($crap_clue in $crap_app_clues) {
     $crap_app = GetApp($crap_clue)
@@ -86,7 +121,6 @@ Function RemoveAllApps {
     }
   } 
 }
-
 RemoveAllApps
 
 <#
@@ -174,6 +208,20 @@ verify_registry_key
 $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\PasswordLess\Device"
 $Name = "DevicePasswordLessBuildVersion"
 $value = "0"
+create_registry_key
+verify_registry_key
+
+#Disable Windows login background image
+$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"
+$Name = "Nolockscreen"
+$value = "1"
+create_registry_key
+verify_registry_key
+
+#Disable Windows spotlight features
+$registryPath = "HKCU:\Software\Policies\Microsoft\Windows\CloudContent"
+$Name = "DisableWindowsSpotlightFeatures"
+$value = "1"
 create_registry_key
 verify_registry_key
 
@@ -329,6 +377,34 @@ $value = "1"
 create_registry_key
 verify_registry_key
 
+#Enable Windows 10 context menu
+$registryPath = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
+$Name = "InprocServer32"
+$value = "0"
+create_registry_key
+verify_registry_key
+
+#Enable verbose status messages during Windows loading screen
+$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
+$Name = "verbosestatus"
+$value = "1"
+create_registry_key
+verify_registry_key
+
+#Taskbar Alignment left
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\"
+$Name = "TaskbarAl"
+$value = "0"
+create_registry_key
+verify_registry_key
+
+#Disable adverstising id
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
+$Name = "Enabled"
+$value = "0"
+create_registry_key
+verify_registry_key
+
 # Explorer default to details view
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags" -Recurse -force -ErrorAction SilentlyContinue;
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\BagMRU" -Recurse -force -ErrorAction SilentlyContinue;
@@ -411,3 +487,15 @@ if ($confirmation -eq 'y') {
   winget.exe install -e --id AntoineAflalo.SoundSwitch
   winget.exe install -e --id Spotify.Spotify
 }
+
+# # Disable automatic pagefile management
+# $cs = gwmi Win32_ComputerSystem
+# if ($cs.AutomaticManagedPagefile) {
+#   $cs.AutomaticManagedPagefile = $False
+#   $cs.Put()
+# }
+# # Disable a *single* pagefile if any
+# $pg = gwmi win32_pagefilesetting
+# if ($pg) {
+#   $pg.Delete()
+# }
