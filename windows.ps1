@@ -20,9 +20,9 @@ Source: https://lazyadmin.nl/powershell/microsoft-teams-uninstall-reinstall-and-
 #>
 $Teams_Machine_WideInstaller = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
 if ($Teams_Machine_WideInstaller) {
-Write-Host "Removing Teams Machine-wide Installer" -ForegroundColor Yellow
-$MachineWide = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
-$MachineWide.Uninstall()
+  Write-Host "Removing Teams Machine-wide Installer" -ForegroundColor Yellow
+  $MachineWide = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
+  $MachineWide.Uninstall()
 }
 Write-Host "Teams Machine-wide Installer not found" -ForegroundColor Yellow
 function unInstallTeams($path) {
@@ -79,7 +79,7 @@ Function RemoveApp($crap_app) {
 Function RemoveAllApps {
   foreach ($crap_clue in $crap_app_clues) {
     $crap_app = GetApp($crap_clue)
-    if ($crap_app -ne $null) {
+    if ($null -ne $crap_app) {
       RemoveApp($crap_app)
     }
     else {
@@ -176,7 +176,7 @@ function create_registry_key {
 }
 
 function verify_registry_key {
-  if ((Get-ItemProperty $registryPath -name $Name | select -exp $Name) -eq $value ) {
+  if ((Get-ItemProperty $registryPath -name $Name | Select-Object -exp $Name) -eq $value ) {
     Write-Host $registryPath\ -ForegroundColor Green -BackgroundColor Black -NoNewline; Write-Host $Name -ForegroundColor Cyan -BackgroundColor Black -NoNewline; Write-Host " was set to value " -ForegroundColor White -BackgroundColor Black -NoNewline; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black  
   }
   else { Write-Host $registryPath\$Name -ForegroundColor Magenta -BackgroundColor Black -NoNewline; Write-Host "was not set to value " -ForegroundColor White -BackgroundColor Black -NoNewline ; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black }
@@ -478,8 +478,8 @@ New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.d
 
 #Disable unnecessary log files and writes to SSD
 function create_dummyfolder_file {
-  if ((Test-Path -LiteralPath $CheckPath) -ne $true) { New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black -NoNewline } 
-  else { Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline; Write-Host " already exists." -ForegroundColor White -BackgroundColor Black -NoNewline }
+  if ((Test-Path -LiteralPath $CheckPath) -ne $true) { New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black } 
+  else { Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline; Write-Host " already exists." -ForegroundColor White -BackgroundColor Black }
 }
 
 $CheckPath = '~\AppData\LocalLow\Deo VR'
