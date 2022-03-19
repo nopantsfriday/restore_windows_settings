@@ -18,9 +18,13 @@ C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
 Uninstall Microsoft Teams
 Source: https://lazyadmin.nl/powershell/microsoft-teams-uninstall-reinstall-and-cleanup-guide-scripts/
 #>
+$Teams_Machine_WideInstaller = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
+if ($Teams_Machine_WideInstaller) {
 Write-Host "Removing Teams Machine-wide Installer" -ForegroundColor Yellow
 $MachineWide = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
 $MachineWide.Uninstall()
+}
+Write-Host "Teams Machine-wide Installer not found" -ForegroundColor Yellow
 function unInstallTeams($path) {
 
   $clientInstaller = "$($path)\Update.exe"
@@ -50,20 +54,40 @@ elseif (Test-Path "$($programData)\Current\Teams.exe") {
   unInstallTeams($programData)
 }
 else {
-  Write-Warning  "Teams installation not found"
+  Write-Host  "Teams installation not found" -ForegroundColor Yellow
 }
 
 <#
 Uninstall uselsee Windows optional features
 #>
-Disable-WindowsOptionalFeature -Online -NoRestart -FeatureName WindowsMediaPlayer
-Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName Internet-Explorer-Optional-amd64
-Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package
+Disable-WindowsOptionalFeature -Online -NoRestart -FeatureName WindowsMediaPlayer | Out-Null
+Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package | Out-Null
 
 <#
 Remove Windows AppxPackages
 Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
 #>
+Write-Host
+Function GetApp($clue) {
+  Get-AppxPackage -Name *$clue*
+}
+Function RemoveApp($crap_app) {
+  $name = $crap_app.Name
+  Write-Host "Deleting $name" -ForegroundColor Green
+  Remove-AppxPackage -Package $crap_app -AllUsers
+}
+Function RemoveAllApps {
+  foreach ($crap_clue in $crap_app_clues) {
+    $crap_app = GetApp($crap_clue)
+    if ($crap_app -ne $null) {
+      RemoveApp($crap_app)
+    }
+    else {
+      Write-Host "Couldn't find '$crap_clue'" -ForegroundColor Yellow
+    }
+  } 
+}
+
 $crap_app_clues = "3dbuilder",
 "3dviewer",
 "bingfinance",
@@ -102,25 +126,6 @@ $crap_app_clues = "3dbuilder",
 "zunemusic",
 "zunevideo"
 
-Function RemoveApp($crap_app) {
-  $name = $crap_app.Name
-  Write-Host "Deleting $name" -ForegroundColor Green
-  Remove-AppxPackage -Package $crap_app -AllUsers
-}
-Function GetApp($clue) {
-  Get-AppxPackage -AllUsers -Name *$clue*
-}
-Function RemoveAllApps {
-  foreach ($crap_clue in $crap_app_clues) {
-    $crap_app = GetApp($crap_clue)
-    if ($crap_app -ne $null) {
-      RemoveApp($crap_app)
-    }
-    else {
-      Write-Host "Couldn't find '$crap_clue'" -ForegroundColor Yellow
-    }
-  } 
-}
 RemoveAllApps
 
 <#
@@ -272,20 +277,6 @@ $Name = "DisableLogonBackgroundImage"
 $value = "1"
 create_registry_key
 verify_registry_key
-
-<#Hide OneDrive from file explorer
-$registryPath = "HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
-$Name = "System.IsPinnedToNameSpaceTree"
-$value = "0"
-create_registry_key
-verify_registry_key
-
-$registryPath = "HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
-$Name = "System.IsPinnedToNameSpaceTree"
-$value = "0"
-create_registry_key
-verify_registry_key
-#>
 
 #Add lockscreen timeout settings to power saving options
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\7516b95f-f776-4464-8c53-06167f40cc99\8EC4B3A5-6868-48c2-BE75-4F3044BE88A7"
@@ -450,7 +441,9 @@ create_dummyfolder_file
 $CheckPath = '~\AppData\LocalLow\DeoVR'
 create_dummyfolder_file
 
-#Install winget
+<#
+Install winget and software
+#>
 # Source file location
 $urisource = 'https://aka.ms/getwinget'
 # Destination to save the file
@@ -459,7 +452,7 @@ $uridestination = '~/Downloads/winget.msixbundle'
 Invoke-WebRequest -Uri $urisource -OutFile $uridestination
 #Import-Module Appx
 #Start-Process "~/Downloads/winget.msixbundle"
-Import-Module Appx -usewindowspowershell
+Import-Module Appx #-usewindowspowershell #only needed on Windows 10
 Add-AppPackage -path '~/Downloads/winget.msixbundle'
 
 #Install Software
@@ -488,6 +481,7 @@ if ($confirmation -eq 'y') {
   winget.exe install -e --id Spotify.Spotify
 }
 
+
 # # Disable automatic pagefile management
 # $cs = gwmi Win32_ComputerSystem
 # if ($cs.AutomaticManagedPagefile) {
@@ -499,3 +493,17 @@ if ($confirmation -eq 'y') {
 # if ($pg) {
 #   $pg.Delete()
 # }
+
+<#Hide OneDrive from file explorer
+$registryPath = "HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
+$Name = "System.IsPinnedToNameSpaceTree"
+$value = "0"
+create_registry_key
+verify_registry_key
+
+$registryPath = "HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
+$Name = "System.IsPinnedToNameSpaceTree"
+$value = "0"
+create_registry_key
+verify_registry_key
+#>
