@@ -11,16 +11,16 @@ powercfg.exe -h off
 #>
 $powercfg = (powercfg.exe -l) |  Out-String
 if ($powercfg -like "*Ultimate Performance*") {
-    $p = Get-CimInstance -Name root\cimv2\power -Class win32_PowerPlan -Filter "ElementName = 'Ultimate Performance'"
-    powercfg /setactive ([string]$p.InstanceID).Replace("Microsoft:PowerPlan\{", "").Replace("}", "")
-    Write-Host "'Ultimate  Performance' power plan selected" -ForegroundColor Green
+  $p = Get-CimInstance -Name root\cimv2\power -Class win32_PowerPlan -Filter "ElementName = 'Ultimate Performance'"
+  powercfg /setactive ([string]$p.InstanceID).Replace("Microsoft:PowerPlan\{", "").Replace("}", "")
+  Write-Host "'Ultimate  Performance' power plan selected" -ForegroundColor Green
 }
 if ($powercfg -notlike "*Ultimate Performance*") {
-    #powercfg -restoredefaultschemes
-    powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
-    $p = Get-CimInstance -Name root\cimv2\power -Class win32_PowerPlan -Filter "ElementName = 'Ultimate Performance'"
-    powercfg /setactive ([string]$p.InstanceID).Replace("Microsoft:PowerPlan\{", "").Replace("}", "")
-    Write-Host "'Ultimate  Performance' power plan created and selected" -ForegroundColor Green
+  #powercfg -restoredefaultschemes
+  powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
+  $p = Get-CimInstance -Name root\cimv2\power -Class win32_PowerPlan -Filter "ElementName = 'Ultimate Performance'"
+  powercfg /setactive ([string]$p.InstanceID).Replace("Microsoft:PowerPlan\{", "").Replace("}", "")
+  Write-Host "'Ultimate  Performance' power plan created and selected" -ForegroundColor Green
 }
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -546,16 +546,21 @@ create_dummyfolder_file
 # Install winget and software
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
-# Source file location
-$urisource = 'https://aka.ms/getwinget'
-# Destination to save the file
-$uridestination = '~/Downloads/winget.msixbundle'
-#Download the file
-Invoke-WebRequest -Uri $urisource -OutFile $uridestination
-#Import-Module Appx
-#Start-Process "~/Downloads/winget.msixbundle"
-Import-Module Appx #-usewindowspowershell #only needed on Windows 10
-Add-AppPackage -path '~/Downloads/winget.msixbundle'
+$winget_installed = ($null -eq (Get-AppxPackage | Where-Object { $_.Name -eq "*Winget*" }))
+if (-Not $winget_installed) {
+  Write-Host "Installing Winget." -ForegroundColor Yellow
+  # Destination to save the file
+  $uridestination = '~/Downloads/winget.msixbundle'
+  #Download the file
+  Invoke-WebRequest -Uri $urisource -OutFile $uridestination
+  #Import-Module Appx
+  #Start-Process "~/Downloads/winget.msixbundle"
+  Import-Module Appx #-usewindowspowershell #only needed on Windows 10
+  Add-AppPackage -path '~/Downloads/winget.msixbundle'
+}
+else {
+  Write-Host "Winget is installed." -ForegroundColor Green
+}
 
 #Install Software
 $confirmation = $(Write-Host "Do you want to install additional software packages?" -ForegroundColor White -BackgroundColor Black -NoNewLine) + $(Write-Host " (y/n): " -ForegroundColor Cyan -BackgroundColor Black -NoNewLine; Read-Host)
