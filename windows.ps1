@@ -1,4 +1,24 @@
 <#
+.SYNOPSIS
+    Configure Windows 11 settings to my likings.
+.DESCRIPTION
+     My attempt to configure Windows 11 to my liking. Keep in mind that not every setting may be right for you.
+     Feel free to use, copy, fork, modify, merge, publish or distribute the script and/or parts of the script.
+     Only tested on Windows 11. If you got suggestions, let me know.
+.PARAMETER Param1
+    No parameters yet.
+.EXAMPLE
+    Example syntax for running the script or function
+    PS C:\> windows.ps1
+.LINK
+    https://github.com/nopantsfriday/windows
+.NOTES
+    Filename: windows.ps1
+    Author: https://github.com/nopantsfriday
+    Modified date: 2022-03-20
+    Version 1.0 - Initial release
+#>
+<#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Disable Hibernate
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
