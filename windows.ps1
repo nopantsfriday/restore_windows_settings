@@ -1,22 +1,28 @@
 <#
-Disable Hibernate
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Disable Hibernate
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 powercfg.exe -h off
-
 <#
-Enable Ultimate Performance Power Plan
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Enable Ultimate Performance Power Plan
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
-
 <#
-Uninstall OneDrive
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Uninstall OneDrive
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 Get-Process -Name "OneDrive" -ErrorAction SilentlyContinue | Stop-Process
 C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
 
 <#
-Uninstall Microsoft Teams
-Source: https://lazyadmin.nl/powershell/microsoft-teams-uninstall-reinstall-and-cleanup-guide-scripts/
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Uninstall Microsoft Teams
+# Source: https://lazyadmin.nl/powershell/microsoft-teams-uninstall-reinstall-and-cleanup-guide-scripts/
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 $Teams_Machine_WideInstaller = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
 if ($Teams_Machine_WideInstaller) {
@@ -58,14 +64,18 @@ else {
 }
 
 <#
-Uninstall uselsee Windows optional features
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Uninstall uselsee Windows optional features
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 Disable-WindowsOptionalFeature -Online -NoRestart -FeatureName WindowsMediaPlayer | Out-Null
 Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package | Out-Null
 
 <#
-Remove Windows AppxPackages
-Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Remove Windows AppxPackages
+# Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 Write-Host
 Function GetApp($clue) {
@@ -129,7 +139,9 @@ $crap_app_clues = "3dbuilder",
 RemoveAllApps
 
 <#
-Disable unnecessary services
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Disable unnecessary services
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 
 $ServiceName = @(
@@ -161,7 +173,9 @@ $ServiceName = @(
 foreach ($Service in $ServiceName ) { Set-Service $Service -StartupType Disable; Stop-Service $Service }
 
 <#
-Configure preferable Windows settings
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Setting my preferred Windows settings via registry
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 
 function create_registry_key {
@@ -459,7 +473,11 @@ $registry_type = "String"
 create_registry_key
 verify_registry_key
 
+<#
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Explorer default to details view
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#>
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags" -Recurse -force -ErrorAction SilentlyContinue;
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\BagMRU" -Recurse -force -ErrorAction SilentlyContinue;
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\Shell\Bags" -Recurse -force -ErrorAction SilentlyContinue;
@@ -475,7 +493,11 @@ New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFo
 New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell' -Name 'Mode' -Value 4 -PropertyType DWord -Force -ea SilentlyContinue | Out-Null;
 New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell' -Name 'vid' -Value '{137E7700-3573-11CF-AE69-08002B2E1262}' -PropertyType String -Force -ea SilentlyContinue | Out-Null;
 
-#Enable old Windows Photoviewer
+<#
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Enable old Windows Photoviewer
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#>
 if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll" -force -ea SilentlyContinue | Out-Null };
 if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell" -force -ea SilentlyContinue | Out-Null };
 if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open" -force -ea SilentlyContinue | Out-Null };
@@ -491,8 +513,11 @@ New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.d
 New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\command' -Name '(default)' -Value '%SystemRoot%\System32\rundll32.exe "%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll", ImageView_Fullscreen %1' -PropertyType ExpandString -Force -ea SilentlyContinue | Out-Null;
 New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\print\DropTarget' -Name 'Clsid' -Value '{60fd46de-f830-4894-a628-6fa81bc0190d}' -PropertyType String -Force -ea SilentlyContinue | Out-Null;
 
-
-#Disable unnecessary log files and writes to SSD
+<#
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Disable unnecessary log files and writes to SSD
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#>
 function create_dummyfolder_file {
   if ((Test-Path -LiteralPath $CheckPath) -ne $true) { New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black } 
   else { Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline; Write-Host " already exists." -ForegroundColor White -BackgroundColor Black }
@@ -504,8 +529,11 @@ create_dummyfolder_file
 $CheckPath = '~\AppData\LocalLow\DeoVR'
 create_dummyfolder_file
 
+
 <#
-Install winget and software
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Install winget and software
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 # Source file location
 $urisource = 'https://aka.ms/getwinget'
@@ -544,6 +572,11 @@ if ($confirmation -eq 'y') {
   winget.exe install -e --id Spotify.Spotify
 }
 
+<#
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Stuff that might be interesting
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#>
 
 # # Disable automatic pagefile management
 # $cs = gwmi Win32_ComputerSystem
@@ -559,13 +592,6 @@ if ($confirmation -eq 'y') {
 
 <#Hide OneDrive from file explorer
 $registryPath = "HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
-$Name = "System.IsPinnedToNameSpaceTree"
-$value = "0"
-$registry_type = "DWORD"
-create_registry_key
-verify_registry_key
-
-$registryPath = "HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
 $Name = "System.IsPinnedToNameSpaceTree"
 $value = "0"
 $registry_type = "DWORD"
