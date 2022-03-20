@@ -549,12 +549,13 @@ create_dummyfolder_file
 $winget_installed = ($null -eq (Get-AppxPackage | Where-Object { $_.Name -eq "*Winget*" }))
 if (-Not $winget_installed) {
   Write-Host "Installing Winget." -ForegroundColor Yellow
+  # Source of winget download file
+  $urisource = 'https://aka.ms/getwinget'
   # Destination to save the file
   $uridestination = '~/Downloads/winget.msixbundle'
-  #Download the file
+  # Download the file
   Invoke-WebRequest -Uri $urisource -OutFile $uridestination
-  #Import-Module Appx
-  #Start-Process "~/Downloads/winget.msixbundle"
+  # Import Appx module and add package
   Import-Module Appx #-usewindowspowershell #only needed on Windows 10
   Add-AppPackage -path '~/Downloads/winget.msixbundle'
 }
