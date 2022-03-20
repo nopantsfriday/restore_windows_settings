@@ -9,21 +9,19 @@ powercfg.exe -h off
 # Enable Ultimate Performance Power Plan
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
-<# work in progress
 $powercfg = (powercfg.exe -l) |  Out-String
 if ($powercfg -like "*Ultimate Performance*") {
     $p = Get-CimInstance -Name root\cimv2\power -Class win32_PowerPlan -Filter "ElementName = 'Ultimate Performance'"
     powercfg /setactive ([string]$p.InstanceID).Replace("Microsoft:PowerPlan\{", "").Replace("}", "")
-    Write-Host "'Ultimate  Performance' selected" -ForegroundColor Green
+    Write-Host "'Ultimate  Performance' power plan selected" -ForegroundColor Green
 }
 if ($powercfg -notlike "*Ultimate Performance*") {
+    #powercfg -restoredefaultschemes
     powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
     $p = Get-CimInstance -Name root\cimv2\power -Class win32_PowerPlan -Filter "ElementName = 'Ultimate Performance'"
     powercfg /setactive ([string]$p.InstanceID).Replace("Microsoft:PowerPlan\{", "").Replace("}", "")
-    Write-Host "'Ultimate  Performance ' created and selected" -ForegroundColor Green
+    Write-Host "'Ultimate  Performance' power plan created and selected" -ForegroundColor Green
 }
-#>
-powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Uninstall OneDrive
@@ -84,7 +82,6 @@ else {
 #>
 Disable-WindowsOptionalFeature -Online -NoRestart -FeatureName WindowsMediaPlayer | Out-Null
 Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package | Out-Null
-
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Remove Windows AppxPackages
