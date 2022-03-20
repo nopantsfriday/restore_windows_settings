@@ -11,9 +11,9 @@
     Example syntax for running the script or function
     PS C:\> windows.ps1
 .LINK
-    https://github.com/nopantsfriday/windows
+    https://github.com/nopantsfriday/restore_windows_settings
 .NOTES
-    Filename: windows.ps1
+    Filename: restore_windows_settings.ps1
     Author: https://github.com/nopantsfriday
     Modified date: 2022-03-20
     Version 1.0 - Initial release
