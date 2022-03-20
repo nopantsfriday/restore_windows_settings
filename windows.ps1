@@ -396,10 +396,10 @@ create_registry_key
 verify_registry_key
 
 #Enable Windows 10 context menu
-$registryPath = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
-$Name = "InprocServer32"
-$value = "0"
-$registry_type = "DWORD"
+$registryPath = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
+$Name = "(Default)"
+$value = ""
+$registry_type = "String"
 create_registry_key
 verify_registry_key
 
