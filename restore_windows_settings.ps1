@@ -504,6 +504,22 @@ $registry_type = "String"
 create_registry_key
 verify_registry_key
 
+#Disable ShowRecent file in Explorer
+$registryPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
+$Name = "ShowRecent"
+$value = "0"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
+#Disable ShowFrequent file in Explorer
+$registryPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
+$Name = "ShowFrequent"
+$value = "0"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Explorer default to details view
@@ -635,3 +651,4 @@ $registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 #>
+
