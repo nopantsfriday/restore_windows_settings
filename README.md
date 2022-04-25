@@ -1,6 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/nopantsfriday/restart_steam_client/blob/master/LICENSE)
+<br>Feel free to use, copy, fork, modify, merge, publish or distribute the script and/or parts of the script.
 # About
-My attempt to optimize and configure Windows 11 to my liking. Keep in mind that not every setting may be right for you. Feel free to use, copy, fork, modify, merge, publish or distribute the script and/or parts of the script. Only tested on Windows 11.
+My attempt to optimize and configure Windows 11 to my liking. Keep in mind that not every setting may be right for you. Only tested on Windows 11.
 
 If you got suggestions, let me know.
 
