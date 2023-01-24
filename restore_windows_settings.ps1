@@ -601,27 +601,31 @@ else {
 #Install Software
 $confirmation = $(Write-Host "Do you want to install additional software packages?" -ForegroundColor White -BackgroundColor Black -NoNewLine) + $(Write-Host " (y/n): " -ForegroundColor Cyan -BackgroundColor Black -NoNewLine; Read-Host)
 if ($confirmation -eq 'y') {
-  winget.exe install -e --id Nvidia.GeForceExperience
-  winget.exe install -e --id Microsoft.VisualStudioCode
-  winget.exe install -e --id Microsoft.PowerShell
-  winget.exe install -e --id OpenWhisperSystems.Signal
-  winget.exe install -e --id Mozilla.Firefox
-  winget.exe install -e --id Google.Chrome
-  winget.exe install -e --id Microsoft.Edge
-  winget.exe install -e --id 7zip.7zip
-  winget.exe install -e --id Git.Git
-  winget.exe install -e --id Logitech.GHUB
-  winget.exe install -e --id Mumble.Mumble
-  winget.exe install -e --id OBSProject.OBSStudio
-  winget.exe install -e --id ProtonTechnologies.ProtonVPN
-  winget.exe install -e --id Intel.IntelDriverAndSupportAssistant
-  winget.exe install -e --id VideoLAN.VLC
-  winget.exe install -e --id Twilio.Authy
-  winget.exe install -e --id Discord.Discord
-  winget.exe install -e --id Microsoft.PowerToys
-  winget.exe install -e --id Nevcairiel.LAVFilters
-  winget.exe install -e --id AntoineAflalo.SoundSwitch
-  winget.exe install -e --id Spotify.Spotify
+winget.exe install -e --id 7zip.7zip
+winget.exe install -e --id AntoineAflalo.SoundSwitch
+winget.exe install -e --id Argotronic.ArgusMonitor
+winget.exe install -e --id Discord.Discord
+winget.exe install -e --id Elgato.StreamDeck
+winget.exe install -e --id Git.Git
+winget.exe install -e --id Google.Chrome
+winget.exe install -e --id Google.Drive
+winget.exe install -e --id Intel.IntelDriverAndSupportAssistant
+winget.exe install -e --id Logitech.GHUB
+winget.exe install -e --id Microsoft.Edge
+winget.exe install -e --id Microsoft.PowerShell
+winget.exe install -e --id Microsoft.PowerToys
+winget.exe install -e --id Microsoft.VisualStudioCode
+winget.exe install -e --id Microsoft.WindowsTerminal
+winget.exe install -e --id Mozilla.Firefox
+winget.exe install -e --id Mumble.Mumble
+winget.exe install -e --id Nevcairiel.LAVFilters
+winget.exe install -e --id Nvidia.GeForceExperience
+winget.exe install -e --id OBSProject.OBSStudio
+winget.exe install -e --id OpenWhisperSystems.Signal
+winget.exe install -e --id ProtonTechnologies.ProtonVPN
+winget.exe install -e --id Spotify.Spotify
+winget.exe install -e --id Twilio.Authy
+winget.exe install -e --id VideoLAN.VLC
 }
 
 <#
