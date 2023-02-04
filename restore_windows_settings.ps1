@@ -15,20 +15,28 @@
 .NOTES
     Filename: restore_windows_settings.ps1
     Author: https://github.com/nopantsfriday
-    Modified date: 2022-03-20
-    Version 1.0 - Initial release
+    Modified date: 2023-02-04
+    Version 1.0.1 - Initial release
 #>
+Clear-Host
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Disable Hibernate
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Disable Hibernate" -ForegroundColor Cyan
 powercfg.exe -h off
+$registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Power"
+$Name = "HibernateEnabled"
+$value = "0"
+$registry_type = "DWORD"
+verify_registry_key
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Enable Ultimate Performance Power Plan
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Enable Ultimate Performance Power Plan" -ForegroundColor Cyan
 $powercfg = (powercfg.exe -l) |  Out-String
 if ($powercfg -like "*Ultimate Performance*") {
   $p = Get-CimInstance -Name root\cimv2\power -Class win32_PowerPlan -Filter "ElementName = 'Ultimate Performance'"
@@ -47,22 +55,31 @@ if ($powercfg -notlike "*Ultimate Performance*") {
 # Uninstall OneDrive
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
-Get-Process -Name "OneDrive" -ErrorAction SilentlyContinue | Stop-Process
-C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
-
+Write-Host "Remove OneDrive" -ForegroundColor Cyan
+if (Test-Path "$env:systemroot\System32\OneDriveSetup.exe") {
+  & "$env:systemroot\System32\OneDriveSetup.exe" /uninstall
+}
+if (Test-Path "$env:systemroot\SysWOW64\OneDriveSetup.exe") {
+  & "$env:systemroot\SysWOW64\OneDriveSetup.exe" /uninstall
+}
+if ((Get-ChildItem "$env:userprofile\OneDrive" -Recurse | Measure-Object).Count -eq 0) {
+  Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$env:userprofile\OneDrive"
+}
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Uninstall Microsoft Teams
 # Source: https://lazyadmin.nl/powershell/microsoft-teams-uninstall-reinstall-and-cleanup-guide-scripts/
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Remove Microsoft Teams Machine-wide Installer" -ForegroundColor Cyan
 $Teams_Machine_WideInstaller = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
 if ($Teams_Machine_WideInstaller) {
   Write-Host "Removing Teams Machine-wide Installer" -ForegroundColor Yellow
   $MachineWide = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -eq "Teams Machine-Wide Installer" }
   $MachineWide.Uninstall()
 }
-Write-Host "Teams Machine-wide Installer not found" -ForegroundColor Yellow
+Write-Host "Remove Microsoft Teams" -ForegroundColor Cyan
+#Write-Host "Teams Machine-wide Installer not found" -ForegroundColor Yellow
 function unInstallTeams($path) {
 
   $clientInstaller = "$($path)\Update.exe"
@@ -100,6 +117,7 @@ else {
 # Uninstall uselsee Windows optional features
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Disable Windows Optional Features" -ForegroundColor Cyan
 Disable-WindowsOptionalFeature -Online -NoRestart -FeatureName WindowsMediaPlayer | Out-Null
 Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Client-Package | Out-Null
 <#
@@ -108,7 +126,7 @@ Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Cl
 # Get-AppxPackage | Where-Object {$_.Name -like "*Skype*"} | Select Name
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
-Write-Host
+Write-Host "Remove Windows Apps" -ForegroundColor Cyan
 Function GetApp($clue) {
   Get-AppxPackage -Name *$clue*
 }
@@ -173,7 +191,7 @@ RemoveAllApps
 # Disable unnecessary services
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
-
+Write-Host "Deactivate Windows Services" -ForegroundColor Cyan
 $ServiceName = @(
   #Windows Retail Demo
   "RetailDemo",
@@ -200,14 +218,23 @@ $ServiceName = @(
   #Downloaded Maps Manager
   "MapsBroker"
 )
-foreach ($Service in $ServiceName ) { Set-Service $Service -StartupType Disable; Stop-Service $Service }
+foreach ($Service in $ServiceName ) {
+  $CheckService = Get-Service -Name $Service -ErrorAction SilentlyContinue
+  if ($null -eq $CheckService) {
+    Write-Host "$Service does not exist" -ForegroundColor Yellow
+  }
+  else {
+    Write-Host "Deactivating service $Service" -ForegroundColor Cyan
+    Set-Service $Service -StartupType Disable; Stop-Service $Service
+  }
+}
 
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Setting my preferred Windows settings via registry
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
-
+Write-Host "Change Windows Settings" -ForegroundColor Cyan
 function create_registry_key {
 
   if (!(Test-Path $registryPath)) {
@@ -223,7 +250,7 @@ function verify_registry_key {
   if ((Get-ItemProperty $registryPath -name $Name | Select-Object -exp $Name) -eq $value ) {
     Write-Host $registryPath\ -ForegroundColor Green -BackgroundColor Black -NoNewline; Write-Host $Name -ForegroundColor Cyan -BackgroundColor Black -NoNewline; Write-Host " was set to value " -ForegroundColor White -BackgroundColor Black -NoNewline; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black  
   }
-  else { Write-Host $registryPath\$Name -ForegroundColor Magenta -BackgroundColor Black -NoNewline; Write-Host "was not set to value " -ForegroundColor White -BackgroundColor Black -NoNewline ; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black }
+  else { Write-Host $registryPath\$Name -ForegroundColor Yellow -BackgroundColor Black -NoNewline; Write-Host "was not set to value " -ForegroundColor White -BackgroundColor Black -NoNewline ; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black }
 }
 
 #Disable Windows 10 fast boot
@@ -524,6 +551,7 @@ verify_registry_key
 # Explorer default to details view
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Explorer default to details view" -ForegroundColor Cyan
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\Bags" -Recurse -force -ErrorAction SilentlyContinue;
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\ShellNoRoam\BagMRU" -Recurse -force -ErrorAction SilentlyContinue;
 Remove-Item -LiteralPath "HKCU:\Software\Microsoft\Windows\Shell\Bags" -Recurse -force -ErrorAction SilentlyContinue;
@@ -544,6 +572,7 @@ New-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\Shell\Bags\AllFo
 # Enable old Windows Photoviewer
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Enable old Windows Photoviewer" -ForegroundColor Cyan
 if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll" -force -ea SilentlyContinue | Out-Null };
 if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell" -force -ea SilentlyContinue | Out-Null };
 if ((Test-Path -LiteralPath "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open") -ne $true) { New-Item "HKLM:\SOFTWARE\Classes\Applications\photoviewer.dll\shell\open" -force -ea SilentlyContinue | Out-Null };
@@ -564,9 +593,10 @@ New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.d
 # Disable unnecessary log files and writes to SSD
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Disable unnecessary log files and writes to SSD" -ForegroundColor Cyan
 function create_dummyfolder_file {
   if ((Test-Path -LiteralPath $CheckPath) -ne $true) { New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black } 
-  else { Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Magenta -NoNewline; Write-Host " already exists." -ForegroundColor White -BackgroundColor Black }
+  else { Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Yellow -NoNewline; Write-Host " already exists." -ForegroundColor White -BackgroundColor Black }
 }
 
 $CheckPath = '~\AppData\LocalLow\Deo VR'
@@ -581,6 +611,7 @@ create_dummyfolder_file
 # Install winget and software
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
+Write-Host "Install winget and software" -ForegroundColor Cyan
 $winget_installed = ($null -eq (Get-AppxPackage | Where-Object { $_.Name -eq "*Winget*" }))
 if (-Not $winget_installed) {
   Write-Host "Installing Winget." -ForegroundColor Yellow
@@ -601,31 +632,31 @@ else {
 #Install Software
 $confirmation = $(Write-Host "Do you want to install additional software packages?" -ForegroundColor White -BackgroundColor Black -NoNewLine) + $(Write-Host " (y/n): " -ForegroundColor Cyan -BackgroundColor Black -NoNewLine; Read-Host)
 if ($confirmation -eq 'y') {
-winget.exe install -e --id 7zip.7zip
-winget.exe install -e --id AntoineAflalo.SoundSwitch
-winget.exe install -e --id Argotronic.ArgusMonitor
-winget.exe install -e --id Discord.Discord
-winget.exe install -e --id Elgato.StreamDeck
-winget.exe install -e --id Git.Git
-winget.exe install -e --id Google.Chrome
-winget.exe install -e --id Google.Drive
-winget.exe install -e --id Intel.IntelDriverAndSupportAssistant
-winget.exe install -e --id Logitech.GHUB
-winget.exe install -e --id Microsoft.Edge
-winget.exe install -e --id Microsoft.PowerShell
-winget.exe install -e --id Microsoft.PowerToys
-winget.exe install -e --id Microsoft.VisualStudioCode
-winget.exe install -e --id Microsoft.WindowsTerminal
-winget.exe install -e --id Mozilla.Firefox
-winget.exe install -e --id Mumble.Mumble
-winget.exe install -e --id Nevcairiel.LAVFilters
-winget.exe install -e --id Nvidia.GeForceExperience
-winget.exe install -e --id OBSProject.OBSStudio
-winget.exe install -e --id OpenWhisperSystems.Signal
-winget.exe install -e --id ProtonTechnologies.ProtonVPN
-winget.exe install -e --id Spotify.Spotify
-winget.exe install -e --id Twilio.Authy
-winget.exe install -e --id VideoLAN.VLC
+  winget.exe install -e --id 7zip.7zip
+  winget.exe install -e --id AntoineAflalo.SoundSwitch
+  winget.exe install -e --id Argotronic.ArgusMonitor
+  winget.exe install -e --id Discord.Discord
+  winget.exe install -e --id Elgato.StreamDeck
+  winget.exe install -e --id Git.Git
+  winget.exe install -e --id Google.Chrome
+  winget.exe install -e --id Google.Drive
+  winget.exe install -e --id Intel.IntelDriverAndSupportAssistant
+  winget.exe install -e --id Logitech.GHUB
+  winget.exe install -e --id Microsoft.Edge
+  winget.exe install -e --id Microsoft.PowerShell
+  winget.exe install -e --id Microsoft.PowerToys
+  winget.exe install -e --id Microsoft.VisualStudioCode
+  winget.exe install -e --id Microsoft.WindowsTerminal
+  winget.exe install -e --id Mozilla.Firefox
+  winget.exe install -e --id Mumble.Mumble
+  winget.exe install -e --id Nevcairiel.LAVFilters
+  winget.exe install -e --id Nvidia.GeForceExperience
+  winget.exe install -e --id OBSProject.OBSStudio
+  winget.exe install -e --id OpenWhisperSystems.Signal
+  winget.exe install -e --id ProtonTechnologies.ProtonVPN
+  winget.exe install -e --id Spotify.Spotify
+  winget.exe install -e --id Twilio.Authy
+  winget.exe install -e --id VideoLAN.VLC
 }
 
 <#
