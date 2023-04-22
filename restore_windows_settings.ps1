@@ -650,6 +650,7 @@ if ($confirmation -eq 'y') {
   winget.exe install -e --id Microsoft.VisualStudioCode
   winget.exe install -e --id Microsoft.WindowsTerminal
   winget.exe install -e --id Mozilla.Firefox
+  winget.exe install -e --id EclipseFoundation.Mosquitto
   winget.exe install -e --id Mumble.Mumble
   winget.exe install -e --id Nevcairiel.LAVFilters
   winget.exe install -e --id Nvidia.GeForceExperience
