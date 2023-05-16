@@ -548,6 +548,14 @@ $registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
+#Enable Nvidia Sharpening
+$registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS"
+$Name = "EnableGR535"
+$value = "0"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Explorer default to details view
