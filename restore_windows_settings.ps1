@@ -670,6 +670,15 @@ if ($confirmation -eq 'y') {
   winget.exe install -e --id VideoLAN.VLC
 }
 
+#Disable integrated GPU
+$igpu = Get-PnpDevice -Class Display | Where-Object Friendlyname -like "*AMD Radeon*"
+if ($igpu.Count -eq 1) {
+  $igpu | Disable-PnpDevice -Confirm:$false
+}
+else {
+  Write-Host "iGPU not found." -ForegroundColor Red
+}
+
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Stuff that might be interesting
