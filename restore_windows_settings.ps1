@@ -127,27 +127,43 @@ Disable-WindowsOptionalFeature –Online -NoRestart -FeatureName SearchEngine-Cl
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 Write-Host "Remove Windows Apps" -ForegroundColor Cyan
-Function GetApp($clue) {
+Function Get-App {
+  param (
+    [string]$clue
+  )
   Get-AppxPackage -Name *$clue*
 }
-Function RemoveApp($crap_app) {
-  $name = $crap_app.Name
-  Write-Host "Deleting $name" -ForegroundColor Green
-  Remove-AppxPackage -Package $crap_app -AllUsers
+
+Function Remove-App {
+  param (
+    [System.Management.Automation.PSObject]$app
+  )
+  try {
+    $name = $app.Name
+    Write-Host "Deleting: $name" -ForegroundColor Green
+    Remove-AppxPackage -Package $app -AllUsers -ErrorAction Stop
+  }
+  catch {
+    Write-Host "Error deleting: $name $_" -ForegroundColor Red
+  }
 }
-Function RemoveAllApps {
-  foreach ($crap_clue in $crap_app_clues) {
-    $crap_app = GetApp($crap_clue)
-    if ($null -ne $crap_app) {
-      RemoveApp($crap_app)
+
+Function Remove-AllApps {
+  param (
+    [string[]]$appClues
+  )
+  foreach ($clue in $appClues) {
+    $app = Get-App -clue $clue
+    if ($app -ne $null) {
+      Remove-App -app $app
     }
     else {
-      Write-Host "Couldn't find '$crap_clue'" -ForegroundColor Yellow
+      Write-Host "Couldn't find: '$clue'" -ForegroundColor Yellow
     }
   } 
 }
 
-$crap_app_clues = "3dbuilder",
+$appsToRemove = @("3dbuilder",
 "3dviewer",
 "bingfinance",
 "bingnews",
@@ -184,9 +200,10 @@ $crap_app_clues = "3dbuilder",
 "yourphone",
 "XING",
 "zunemusic",
-"zunevideo"
+"zunevideo")
 
-RemoveAllApps
+Remove-AllApps -appClues $appsToRemove
+
 
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -194,40 +211,33 @@ RemoveAllApps
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 Write-Host "Deactivate Windows Services" -ForegroundColor Cyan
-$ServiceName = @(
-  #Windows Retail Demo
-  "RetailDemo",
-  # Windows Mobile Hotspot
-  "icssvc",
-  #PhoneService
-  "PhoneSvc",
-  #Biometric Services
-  "WbioSrvc",
-  #Windows Search (sucks anyway)
-  "WSearch",
-  #Windows Insider Service
-  "wisvc",
-  #Windows Error Reporting
-  "WerSvc"
-  #RemoteRegistry
-  "RemoteRegistry",
-  #Touch Keyboard and Handwriting Panel Service
-  "TabletInputService",
-  #Windows Fax
-  "Fax",
-  #Connected User Experiences and Telemetry
-  "DiagTrack",
-  #Downloaded Maps Manager
-  "MapsBroker"
+
+# List of Windows services to deactivate
+$ServicesToDeactivate = @(
+  "RetailDemo",               # Windows Retail Demo
+  "icssvc",                   # Windows Mobile Hotspot
+  "PhoneSvc",                 # PhoneService
+  "WbioSrvc",                 # Biometric Services
+  "WSearch",                  # Windows Search (sucks anyway)
+  "wisvc",                    # Windows Insider Service
+  "WerSvc",                   # Windows Error Reporting
+  "RemoteRegistry",           # Remote Registry
+  "TabletInputService",       # Touch Keyboard and Handwriting Panel Service
+  "Fax",                      # Windows Fax
+  "DiagTrack",                # Connected User Experiences and Telemetry
+  "MapsBroker"                # Downloaded Maps Manager
 )
-foreach ($Service in $ServiceName ) {
-  $CheckService = Get-Service -Name $Service -ErrorAction SilentlyContinue
-  if ($null -eq $CheckService) {
-    Write-Host "$Service does not exist" -ForegroundColor Yellow
-  }
-  else {
-    Write-Host "Deactivating service $Service" -ForegroundColor Cyan
-    Set-Service $Service -StartupType Disable; Stop-Service $Service
+
+# Loop through each service and attempt to deactivate it
+foreach ($ServiceName in $ServicesToDeactivate) {
+  try {
+    # Get the service, and if it exists, set its startup type to Disabled and stop it
+    $Service = Get-Service -Name $ServiceName -ErrorAction Stop
+    Write-Host "Deactivating service $ServiceName" -ForegroundColor Cyan
+    $Service | Set-Service -StartupType Disabled -PassThru | Stop-Service -Force
+  } catch {
+    # Handle the case where the service does not exist
+    Write-Host "$ServiceName does not exist" -ForegroundColor Yellow
   }
 }
 
@@ -254,6 +264,38 @@ function verify_registry_key {
   }
   else { Write-Host $registryPath\$Name -ForegroundColor Yellow -BackgroundColor Black -NoNewline; Write-Host "was not set to value " -ForegroundColor White -BackgroundColor Black -NoNewline ; Write-Host $value -ForegroundColor Cyan -BackgroundColor Black }
 }
+
+function Create-RegistryKey {
+  param (
+    [string]$registryPath,
+    [string]$name,
+    [string]$registryType,
+    [string]$value
+  )
+
+  if (!(Test-Path $registryPath)) {
+    New-Item -Path $registryPath -Force | Out-Null
+  }
+  
+  New-ItemProperty -Name $name -Path $registryPath -Force -PropertyType $registryType -Value $value | Out-Null
+}
+
+function Verify-RegistryKey {
+  param (
+    [string]$registryPath,
+    [string]$name,
+    [string]$value
+  )
+
+  $keyValue = (Get-ItemProperty $registryPath -Name $name | Select-Object -ExpandProperty $name)
+
+  if ($keyValue -eq $value) {
+    Write-Host "$registryPath\$name was set to value $value" -ForegroundColor Green
+  } else {
+    Write-Host "$registryPath\$name was not set to value $value" -ForegroundColor Yellow
+  }
+}
+
 
 #Disable Windows 10 fast boot
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
@@ -334,7 +376,7 @@ $registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
-#Disable Windows Insider Error Message Reporting
+#Explorer launch to "This PC"
 $registryPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $Name = "LaunchTo"
 $value = "1"
@@ -556,6 +598,24 @@ $registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
+#Disable animations in Windows
+$registryPath = "HKCU:\Control Panel\Desktop\WindowMetrics"
+$Name = "MinAnimate"
+$value = "1"
+$registry_type = "String"
+create_registry_key
+verify_registry_key
+
+#Disable transparancey
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+$Name = "EnableTransparency"
+$value = "0"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
+
+
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Explorer default to details view
@@ -643,18 +703,16 @@ else {
 $confirmation = $(Write-Host "Do you want to install additional software packages?" -ForegroundColor White -BackgroundColor Black -NoNewLine) + $(Write-Host " (y/n): " -ForegroundColor Cyan -BackgroundColor Black -NoNewLine; Read-Host)
 if ($confirmation -eq 'y') {
   winget.exe install -e --id 7zip.7zip
-  winget.exe install -e --id AntoineAflalo.SoundSwitch
   winget.exe install -e --id Argotronic.ArgusMonitor
   winget.exe install -e --id Discord.Discord
   winget.exe install -e --id Elgato.StreamDeck
   winget.exe install -e --id Git.Git
   winget.exe install -e --id Google.Chrome
-  winget.exe install -e --id Google.Drive
   winget.exe install -e --id Intel.IntelDriverAndSupportAssistant
   winget.exe install -e --id Logitech.GHUB
   winget.exe install -e --id Microsoft.Edge
   winget.exe install -e --id Microsoft.PowerShell
-  winget.exe install -e --id Microsoft.PowerToys
+  #winget.exe install -e --id Microsoft.PowerToys
   winget.exe install -e --id Microsoft.VisualStudioCode
   winget.exe install -e --id Microsoft.WindowsTerminal
   winget.exe install -e --id Mozilla.Firefox
@@ -662,7 +720,7 @@ if ($confirmation -eq 'y') {
   winget.exe install -e --id Mumble.Mumble
   winget.exe install -e --id Nevcairiel.LAVFilters
   winget.exe install -e --id Nvidia.GeForceExperience
-  winget.exe install -e --id OBSProject.OBSStudio
+  #winget.exe install -e --id OBSProject.OBSStudio
   winget.exe install -e --id OpenWhisperSystems.Signal
   winget.exe install -e --id ProtonTechnologies.ProtonVPN
   winget.exe install -e --id Spotify.Spotify
