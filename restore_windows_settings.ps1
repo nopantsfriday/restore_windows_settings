@@ -31,6 +31,26 @@ $Name = "HibernateEnabled"
 $value = "0"
 $registry_type = "DWORD"
 verify_registry_key
+
+<#
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Enable File and Printer Sharing (Echo Request - ICMPv4-In) to allow pinging the host
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#>
+# Define the firewall rule name
+$firewallRuleName = "File and Printer Sharing (Echo Request - ICMPv4-In)"
+
+# Check if the firewall rule exists
+$existingRule = Get-NetFirewallRule | Where-Object { $_.DisplayName -eq $firewallRuleName }
+
+if ($existingRule -eq $null) {
+    Write-Host "Firewall rule not found: $firewallRuleName"
+} else {
+    # Enable the firewall rule
+    Enable-NetFirewallRule -DisplayName $firewallRuleName
+    Write-Host "Firewall rule '$firewallRuleName' has been enabled."
+}
+
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Enable Ultimate Performance Power Plan
@@ -56,14 +76,24 @@ if ($powercfg -notlike "*Ultimate Performance*") {
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 Write-Host "Remove OneDrive" -ForegroundColor Cyan
-if (Test-Path "$env:systemroot\System32\OneDriveSetup.exe") {
-  & "$env:systemroot\System32\OneDriveSetup.exe" /uninstall
+
+try {
+  if (Test-Path "$env:systemroot\System32\OneDriveSetup.exe") {
+    & "$env:systemroot\System32\OneDriveSetup.exe" /uninstall
+  }
+  if (Test-Path "$env:systemroot\SysWOW64\OneDriveSetup.exe") {
+    & "$env:systemroot\SysWOW64\OneDriveSetup.exe" /uninstall
+  }
+} catch {
+  Write-Host "Error: $_" -ForegroundColor Red
 }
-if (Test-Path "$env:systemroot\SysWOW64\OneDriveSetup.exe") {
-  & "$env:systemroot\SysWOW64\OneDriveSetup.exe" /uninstall
-}
-if ((Get-ChildItem "$env:userprofile\OneDrive" -Recurse | Measure-Object).Count -eq 0) {
-  Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$env:userprofile\OneDrive"
+
+try {
+  if ((Get-ChildItem "$env:userprofile\OneDrive" -Recurse | Measure-Object).Count -eq 0) {
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$env:userprofile\OneDrive"
+  }
+} catch {
+  Write-Host "Error: $_" -ForegroundColor Red
 }
 <#
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -664,16 +694,26 @@ New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Classes\Applications\photoviewer.d
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #>
 Write-Host "Disable unnecessary log files and writes to SSD" -ForegroundColor Cyan
+
 function create_dummyfolder_file {
-  if ((Test-Path -LiteralPath $CheckPath) -ne $true) { New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; Write-Host " was created." -ForegroundColor White -BackgroundColor Black } 
-  else { Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Yellow -NoNewline; Write-Host " already exists." -ForegroundColor White -BackgroundColor Black }
+  param($CheckPath)
+  if ((Test-Path -LiteralPath $CheckPath) -ne $true) { 
+    New-Item -Path $CheckPath -ItemType File -force -ea SilentlyContinue | Out-Null; 
+    Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Green -NoNewline; 
+    Write-Host " was created." -ForegroundColor White -BackgroundColor Black 
+  } 
+  else { 
+    Write-Host "$CheckPath" -BackgroundColor Black -ForegroundColor Yellow -NoNewline; 
+    Write-Host " already exists." -ForegroundColor White -BackgroundColor Black 
+  }
 }
 
 $CheckPath = '~\AppData\LocalLow\Deo VR'
-create_dummyfolder_file
+create_dummyfolder_file -CheckPath $CheckPath
 
 $CheckPath = '~\AppData\LocalLow\DeoVR'
-create_dummyfolder_file
+create_dummyfolder_file -CheckPath $CheckPath
+
 
 
 <#
@@ -729,12 +769,18 @@ if ($confirmation -eq 'y') {
 }
 
 #Disable integrated GPU
-$igpu = Get-PnpDevice -Class Display | Where-Object Friendlyname -like "*AMD Radeon*"
-if ($igpu.Count -eq 1) {
-  $igpu | Disable-PnpDevice -Confirm:$false
+try {
+  $igpu = Get-PnpDevice -Class Display | Where-Object Friendlyname -like "*AMD Radeon*"
+  if ($igpu.Count -eq 1) {
+    $igpu | Disable-PnpDevice -Confirm:$false
+    Write-Host "iGPU disabled." -ForegroundColor Green
+  }
+  else {
+    Write-Host "iGPU not found." -ForegroundColor Red
+  }
 }
-else {
-  Write-Host "iGPU not found." -ForegroundColor Red
+catch {
+  Write-Host "Error disabling iGPU: $_" -ForegroundColor Red
 }
 
 <#
