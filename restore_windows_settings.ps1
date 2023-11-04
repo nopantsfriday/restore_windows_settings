@@ -644,6 +644,14 @@ $registry_type = "DWORD"
 create_registry_key
 verify_registry_key
 
+#Disable sticky keys
+$registryPath = "HKCU:\Control Panel\Accessibility\StickyKeys"
+$Name = "Flags"
+$value = "506"
+$registry_type = "DWORD"
+create_registry_key
+verify_registry_key
+
 
 
 <#
